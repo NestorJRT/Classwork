@@ -1,0 +1,49 @@
+body {
+    margin: 0;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 2fr 3fr 1fr;
+    grid-template-rows: 2fr 1fr 1fr;
+    width: 600px;
+    height: 600px;
+    border: 10px solid black;
+    gap: 10px;
+    background-color: black;
+}
+
+div {
+    background-color: white;
+}
+
+.red {
+    background-color: red;
+    grid-row: 1 / span 2;
+}
+
+.white-one {
+    grid-column: 2 / span 2;
+}
+
+.white-two {
+    grid-column: 2;
+    grid-row: 2;
+}
+
+.blue {
+    background-color: blue;
+    grid-column: 3;
+    grid-row: 2;
+}
+
+.white-three {
+    grid-column: 1 / span 2;
+    grid-row: 3;
+}
+
+.yellow {
+    background-color: yellow;
+    grid-column: 3;
+    grid-row: 3;
+}
