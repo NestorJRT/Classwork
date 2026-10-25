@@ -1,8 +1,32 @@
 import express from 'express'
+import { existsSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 // const express = require('express');
+import { connectDB } from './config/db.js';
+import { creatUser, finsdUser, findUsers } from "./services/user-service.js";
+
+const projectDir = dirname(fileURLToPath(import.meta.url));
+const envPath = join(projectDir, '.env');
+if (existsSync(envPath)) {
+  process.loadEnvFile(envPath);
+}
 
 const app = express()
 app.use(express.json()); // Middleware
+
+const PORT = process.env.PORT || 3000;
+const dbUser = encodeURIComponent(process.env.DB_USER || '');
+const dbPass = encodeURIComponent(process.env.DB_PASSWORD || '');
+const dbName = 'bdays';
+
+if (!dbUser || !dbPass) {
+  throw new Error('Set DB_USER and DB_PASSWORD in express-test/.env before starting the app.');
+}
+
+const initiatives = [];
+
+const mongoUrl = `mongodb+srv://${dbUser}:${dbPass}@cluster0.4viiniw.mongodb.net/${dbName}?retryWrites=true&w=majority&appName=Cluster0`;
 
 const scientists = [
     { id: 1, name: "Dr. Elena Rostova", department: "Climate", projects: 4 },
@@ -23,8 +47,17 @@ app.get('/', (req, res) => {
 app.get('/greet', (req, res) => {
   const { name, city } = req.query;
   res.send(`Hello ${name}, how is the weather in ${city}`);
-})
+});
   
+app.post("/user", (req, res) => {
+  const { username, name, email, password } = req.body;
+  if (!username || !name || !email || !password) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+  const newUser = createUser({ username, name, email, password });
+  res.status(201).json(newUser);
+});
+
 // /api/scientists?dept=***
 app.get('/api/scientists',(req, res) => {
   const { dept } = req.query;
@@ -69,6 +102,16 @@ app.post('/about', (req, res) => {
   res.send('This is still my WebApp Class project.')
 })
 
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000')
-})
+const startServer = async () => {
+  try {
+    await connectDB(mongoUrl);
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`)
+    });
+  } catch (error) {
+    console.error(`Unable to start the server: ${error.message}`);
+    process.exitCode = 1;
+  }
+};
+
+await startServer();
